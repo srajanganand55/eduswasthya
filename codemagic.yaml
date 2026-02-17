@@ -1,0 +1,18 @@
+workflows:
+  android-workflow:
+    name: EduSwasthya Android Build
+    max_build_duration: 60
+    environment:
+      flutter: stable
+
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+
+      - name: Build Android App Bundle
+        script: |
+          flutter build appbundle --release
+
+    artifacts:
+      - build/**/outputs/**/*.aab
