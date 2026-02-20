@@ -1,51 +1,35 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/tts_service.dart';
-import '../services/progress_service.dart';
-import 'alphabet_complete_screen.dart';
+import '../services/numbers_progress_service.dart';
+import 'numbers_complete_screen.dart';
 
-class AlphabetLessonScreen extends StatefulWidget {
+class NumbersLessonScreen extends StatefulWidget {
   final int index;
-  const AlphabetLessonScreen({super.key, required this.index});
+  const NumbersLessonScreen({super.key, required this.index});
 
   @override
-  State<AlphabetLessonScreen> createState() => _AlphabetLessonScreenState();
+  State<NumbersLessonScreen> createState() => _NumbersLessonScreenState();
 }
 
-class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
+class _NumbersLessonScreenState extends State<NumbersLessonScreen>
     with SingleTickerProviderStateMixin {
 
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
-  static const List<Map<String, String>> alphabetData = [
-    {"letter": "A", "word": "Apple", "image": "assets/images/apple.png"},
-    {"letter": "B", "word": "Ball", "image": "assets/images/ball.png"},
-    {"letter": "C", "word": "Cat", "image": "assets/images/cat.png"},
-    {"letter": "D", "word": "Dog", "image": "assets/images/dog.png"},
-    {"letter": "E", "word": "Elephant", "image": "assets/images/elephant.png"},
-    {"letter": "F", "word": "Fish", "image": "assets/images/fish.png"},
-    {"letter": "G", "word": "Grapes", "image": "assets/images/grapes.png"},
-    {"letter": "H", "word": "Hen", "image": "assets/images/hen.png"},
-    {"letter": "I", "word": "Ice Cream", "image": "assets/images/icecream.png"},
-    {"letter": "J", "word": "Jug", "image": "assets/images/jug.png"},
-    {"letter": "K", "word": "Kite", "image": "assets/images/kite.png"},
-    {"letter": "L", "word": "Lion", "image": "assets/images/lion.png"},
-    {"letter": "M", "word": "Mango", "image": "assets/images/mango.png"},
-    {"letter": "N", "word": "Nest", "image": "assets/images/nest.png"},
-    {"letter": "O", "word": "Orange", "image": "assets/images/orange.png"},
-    {"letter": "P", "word": "Parrot", "image": "assets/images/parrot.png"},
-    {"letter": "Q", "word": "Queen", "image": "assets/images/queen.png"},
-    {"letter": "R", "word": "Rabbit", "image": "assets/images/rabbit.png"},
-    {"letter": "S", "word": "Sun", "image": "assets/images/sun.png"},
-    {"letter": "T", "word": "Tiger", "image": "assets/images/tiger.png"},
-    {"letter": "U", "word": "Umbrella", "image": "assets/images/umbrella.png"},
-    {"letter": "V", "word": "Van", "image": "assets/images/van.png"},
-    {"letter": "W", "word": "Watch", "image": "assets/images/watch.png"},
-    {"letter": "X", "word": "X-ray", "image": "assets/images/xray.png"},
-    {"letter": "Y", "word": "Yak", "image": "assets/images/yak.png"},
-    {"letter": "Z", "word": "Zebra", "image": "assets/images/zebra.png"},
+  static const List<Map<String, String>> numbersData = [
+    {"number": "1", "word": "One", "image": "assets/images/1.png"},
+    {"number": "2", "word": "Two", "image": "assets/images/2.png"},
+    {"number": "3", "word": "Three", "image": "assets/images/3.png"},
+    {"number": "4", "word": "Four", "image": "assets/images/4.png"},
+    {"number": "5", "word": "Five", "image": "assets/images/5.png"},
+    {"number": "6", "word": "Six", "image": "assets/images/6.png"},
+    {"number": "7", "word": "Seven", "image": "assets/images/7.png"},
+    {"number": "8", "word": "Eight", "image": "assets/images/8.png"},
+    {"number": "9", "word": "Nine", "image": "assets/images/9.png"},
+    {"number": "10", "word": "Ten", "image": "assets/images/10.png"},
   ];
 
   @override
@@ -65,9 +49,12 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
     _controller.forward();
 
     Future.delayed(const Duration(milliseconds: 300), () async {
-      await ProgressService.markLetterCompleted(widget.index);
-      final data = alphabetData[widget.index];
-      await TTSService().speak("${data["letter"]} for ${data["word"]}");
+      await NumbersProgressService.markNumberCompleted(widget.index);
+
+      final data = numbersData[widget.index];
+
+      /// ⭐ FIXED — speak ONLY the word
+      await TTSService().speak(data["word"]!);
     });
   }
 
@@ -78,17 +65,17 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
   }
 
   void goNext() async {
-    if (widget.index < 25) {
+    if (widget.index < 9) {
       Navigator.pushReplacement(
         context,
-        _createRoute(AlphabetLessonScreen(index: widget.index + 1)),
+        _createRoute(NumbersLessonScreen(index: widget.index + 1)),
       );
     } else {
-      bool done = await ProgressService.isAlphabetFullyCompleted();
+      bool done = await NumbersProgressService.isNumbersFullyCompleted();
       if (done) {
         Navigator.pushReplacement(
           context,
-          _createRoute(const AlphabetCompleteScreen()),
+          _createRoute(const NumbersCompleteScreen()),
         );
       }
     }
@@ -98,7 +85,7 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
     if (widget.index > 0) {
       Navigator.pushReplacement(
         context,
-        _createRoute(AlphabetLessonScreen(index: widget.index - 1)),
+        _createRoute(NumbersLessonScreen(index: widget.index - 1)),
       );
     }
   }
@@ -124,12 +111,12 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
 
   @override
   Widget build(BuildContext context) {
-    final data = alphabetData[widget.index];
+    final data = numbersData[widget.index];
 
     return Scaffold(
-      backgroundColor: Colors.transparent, // ⭐ KEY FIX
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text("Alphabet Lesson"),
+        title: const Text("Numbers Lesson"),
         backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -147,6 +134,7 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
         child: SafeArea(
           child: Column(
             children: [
+
               Expanded(
                 child: FadeTransition(
                   opacity: _fadeAnimation,
@@ -156,30 +144,40 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       child: Column(
                         children: [
-                          Text(data["letter"]!,
+
+                          Text(data["number"]!,
                               style: const TextStyle(
                                   fontSize: 95,
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.primaryColor)),
+
                           const SizedBox(height: 12),
-                          Text("${data["letter"]} for ${data["word"]}",
+
+                          Text(data["word"]!,
                               style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold)),
+
                           const SizedBox(height: 25),
+
                           Image.asset(data["image"]!, height: 200),
+
                           const SizedBox(height: 35),
+
                           ElevatedButton.icon(
                             onPressed: () async =>
-                                await TTSService().speak("${data["letter"]} for ${data["word"]}"),
+                                await TTSService().speak(data["word"]!),
                             icon: const Icon(Icons.volume_up, size: 32),
                             label: const Text(
                               "Tap to Hear",
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
-                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 40, vertical: 18),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
@@ -192,6 +190,7 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
                   ),
                 ),
               ),
+
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
                 child: Row(

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../services/progress_service.dart';
-import 'alphabet_lesson_screen.dart';
+import '../services/numbers_progress_service.dart';
+import 'numbers_lesson_screen.dart';
 import '../main.dart';
 
-class AlphabetListScreen extends StatefulWidget {
-  const AlphabetListScreen({super.key});
+class NumbersListScreen extends StatefulWidget {
+  const NumbersListScreen({super.key});
 
   @override
-  State<AlphabetListScreen> createState() => _AlphabetListScreenState();
+  State<NumbersListScreen> createState() => _NumbersListScreenState();
 }
 
-class _AlphabetListScreenState extends State<AlphabetListScreen>
+class _NumbersListScreenState extends State<NumbersListScreen>
     with RouteAware {
 
-  List<int> completedLetters = [];
-  int nextLetterIndex = 0;
+  List<int> completedNumbers = [];
+  int nextNumberIndex = 0;
 
   @override
   void initState() {
@@ -35,46 +35,43 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
     super.dispose();
   }
 
-  /// ⭐ THIS runs when coming back from Lesson screen
   @override
   void didPopNext() {
     loadProgress();
   }
 
   Future<void> loadProgress() async {
-    completedLetters = await ProgressService.getCompletedLetters();
+    completedNumbers = await NumbersProgressService.getCompletedNumbers();
 
-    nextLetterIndex = 0;
-    for (int i = 0; i < 26; i++) {
-      if (!completedLetters.contains(i)) {
-        nextLetterIndex = i;
+    nextNumberIndex = 0;
+    for (int i = 0; i < 10; i++) {
+      if (!completedNumbers.contains(i)) {
+        nextNumberIndex = i;
         break;
       }
-      if (i == 25) nextLetterIndex = 25;
+      if (i == 9) nextNumberIndex = 9;
     }
 
     setState(() {});
   }
 
-  bool isLetterCompleted(int i) => completedLetters.contains(i);
-  bool isLetterUnlocked(int i) =>
-      i == 0 || completedLetters.contains(i - 1);
+  bool isCompleted(int i) => completedNumbers.contains(i);
+  bool isUnlocked(int i) => i == 0 || completedNumbers.contains(i - 1);
 
   @override
   Widget build(BuildContext context) {
-    List<String> letters =
-        List.generate(26, (i) => String.fromCharCode(65 + i));
+    List<String> numbers = List.generate(10, (i) => "${i + 1}");
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Alphabets"),
+        title: const Text("Numbers"),
         backgroundColor: AppTheme.primaryColor,
       ),
       body: Column(
         children: [
 
-          if (completedLetters.isNotEmpty &&
-              completedLetters.length < 26)
+          /// Continue Learning Banner
+          if (completedNumbers.isNotEmpty && completedNumbers.length < 10)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Container(
@@ -85,15 +82,13 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.school,
-                        size: 40, color: Colors.orange),
+                    const Icon(Icons.school, size: 40, color: Colors.orange),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        "Continue learning from Letter ${letters[nextLetterIndex]}",
+                        "Continue learning from Number ${numbers[nextNumberIndex]}",
                         style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                     ElevatedButton(
@@ -102,7 +97,7 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
                           context,
                           MaterialPageRoute(
                             builder: (_) =>
-                                AlphabetLessonScreen(index: nextLetterIndex),
+                                NumbersLessonScreen(index: nextNumberIndex),
                           ),
                         );
                       },
@@ -113,19 +108,19 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
               ),
             ),
 
+          /// Numbers Grid
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: letters.length,
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+              itemCount: numbers.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
               ),
               itemBuilder: (_, i) {
-                bool completed = isLetterCompleted(i);
-                bool unlocked = isLetterUnlocked(i);
+                bool completed = isCompleted(i);
+                bool unlocked = isUnlocked(i);
 
                 Color tileColor = completed
                     ? Colors.green
@@ -139,8 +134,7 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  AlphabetLessonScreen(index: i),
+                              builder: (_) => NumbersLessonScreen(index: i),
                             ),
                           );
                         }
@@ -150,14 +144,13 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
                       Container(
                         decoration: BoxDecoration(
                           color: tileColor,
-                          borderRadius:
-                              BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: Center(
                           child: Text(
-                            letters[i],
+                            numbers[i],
                             style: const TextStyle(
-                              fontSize: 36,
+                              fontSize: 42,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),

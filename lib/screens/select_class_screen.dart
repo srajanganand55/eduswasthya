@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'subjects_screen.dart';
+import 'nursery_modules_screen.dart';
 
 class SelectClassScreen extends StatelessWidget {
   const SelectClassScreen({super.key});
@@ -39,15 +40,30 @@ class SelectClassScreen extends StatelessWidget {
           ),
           itemBuilder: (context, index) {
             final item = classes[index];
+            final title = item["title"] as String;
 
             return GestureDetector(
               onTap: () {
-                Navigator.push(
+
+                /// ⭐ SPECIAL FLOW FOR NURSERY
+                if (title == "Nursery") {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const SubjectsScreen(),
+                      builder: (_) => const NurseryModulesScreen(),
                     ),
-                );
+                  );
+                }
+
+                /// OTHER CLASSES → SUBJECTS SCREEN
+                else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SubjectsScreen(),
+                    ),
+                  );
+                }
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -71,7 +87,7 @@ class SelectClassScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      item["title"] as String,
+                      title,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,

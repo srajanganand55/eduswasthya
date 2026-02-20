@@ -3,21 +3,19 @@ import 'package:confetti/confetti.dart';
 import '../theme/app_theme.dart';
 import '../services/progress_service.dart';
 import '../services/tts_service.dart';
-import 'alphabet_lesson_screen.dart';
+import 'numbers_lesson_screen.dart';
 import 'nursery_modules_screen.dart';
 
-class AlphabetCompleteScreen extends StatefulWidget {
-  const AlphabetCompleteScreen({super.key});
+class NumbersCompleteScreen extends StatefulWidget {
+  const NumbersCompleteScreen({super.key});
 
   @override
-  State<AlphabetCompleteScreen> createState() =>
-      _AlphabetCompleteScreenState();
+  State<NumbersCompleteScreen> createState() =>
+      _NumbersCompleteScreenState();
 }
 
-class _AlphabetCompleteScreenState
-    extends State<AlphabetCompleteScreen>
+class _NumbersCompleteScreenState extends State<NumbersCompleteScreen>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _trophyController;
   late Animation<double> _scaleAnim;
   late ConfettiController _confettiController;
@@ -25,6 +23,9 @@ class _AlphabetCompleteScreenState
   @override
   void initState() {
     super.initState();
+
+    // ⭐⭐⭐ CRITICAL — mark completion
+    _markNumbersCompleted();
 
     /// 🎉 Confetti
     _confettiController =
@@ -34,7 +35,7 @@ class _AlphabetCompleteScreenState
     /// 🔊 Voice
     Future.delayed(const Duration(milliseconds: 400), () async {
       await TTSService().speak(
-        "Fantastic! You finished all alphabets. Great job!",
+        "Amazing! You finished all numbers. Great job!",
       );
     });
 
@@ -47,6 +48,10 @@ class _AlphabetCompleteScreenState
     _scaleAnim = Tween<double>(begin: 0.9, end: 1.08).animate(
       CurvedAnimation(parent: _trophyController, curve: Curves.easeInOut),
     );
+  }
+
+  Future<void> _markNumbersCompleted() async {
+    await ProgressService.markNumbersCompleted();
   }
 
   @override
@@ -67,14 +72,13 @@ class _AlphabetCompleteScreenState
       ),
       body: Stack(
         children: [
-
-          /// ⭐ Background
+          /// 🔵 Blue celebration background
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFFFFF3CD),
-                  Color(0xFFFFE08A),
+                  Color(0xFFE3F2FD),
+                  Color(0xFF90CAF9),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -82,7 +86,7 @@ class _AlphabetCompleteScreenState
             ),
           ),
 
-          /// 🎉 Confetti burst from top
+          /// 🎉 Confetti burst
           Align(
             alignment: Alignment.topCenter,
             child: ConfettiWidget(
@@ -100,7 +104,6 @@ class _AlphabetCompleteScreenState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 ScaleTransition(
                   scale: _scaleAnim,
                   child: const Icon(
@@ -113,7 +116,7 @@ class _AlphabetCompleteScreenState
                 const SizedBox(height: 24),
 
                 const Text(
-                  "Fantastic!",
+                  "Amazing!",
                   style: TextStyle(
                     fontSize: 38,
                     fontWeight: FontWeight.bold,
@@ -124,7 +127,7 @@ class _AlphabetCompleteScreenState
                 const SizedBox(height: 10),
 
                 const Text(
-                  "You finished all alphabets!",
+                  "You finished all numbers!",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 22),
                 ),
@@ -135,8 +138,7 @@ class _AlphabetCompleteScreenState
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Column(
                     children: [
-
-                      /// Back
+                      /// ✅ Back to Subjects
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -169,18 +171,18 @@ class _AlphabetCompleteScreenState
 
                       const SizedBox(height: 16),
 
-                      /// Restart
+                      /// 🔄 Restart Numbers
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () async {
-                            await ProgressService.resetAlphabetProgress();
+                            await ProgressService.resetNumbersProgress();
 
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
                                 builder: (_) =>
-                                    const AlphabetLessonScreen(index: 0),
+                                    const NumbersLessonScreen(index: 0),
                               ),
                               (route) => route.isFirst,
                             );
@@ -193,7 +195,7 @@ class _AlphabetCompleteScreenState
                             ),
                           ),
                           child: const Text(
-                            "Restart Alphabets",
+                            "Restart Numbers",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,

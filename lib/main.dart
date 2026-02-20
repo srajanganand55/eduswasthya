@@ -3,6 +3,10 @@ import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'services/tts_service.dart';
 
+/// ⭐ Route observer used to detect when we return to a screen
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -21,6 +25,10 @@ class EduSwasthyaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'EduSwasthya',
       theme: AppTheme.lightTheme,
+
+      /// ⭐ Attach navigator observer here
+      navigatorObservers: [routeObserver],
+
       home: const SplashScreen(),
     );
   }
