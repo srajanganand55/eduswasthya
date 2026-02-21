@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/progress_service.dart';
 import 'alphabet_list_screen.dart';
 import 'numbers_list_screen.dart';
+import 'shapes_list_screen.dart';
+import '../services/shapes_progress_service.dart';
 
 class NurseryModulesScreen extends StatefulWidget {
   const NurseryModulesScreen({super.key});
@@ -14,6 +16,7 @@ class NurseryModulesScreen extends StatefulWidget {
 class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
   bool _alphaCompleted = false;
   bool _numbersCompleted = false;
+  bool _shapesCompleted = false;
 
   @override
   void initState() {
@@ -24,12 +27,14 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
   Future<void> _loadProgress() async {
     final alphaDone = await ProgressService.isAlphabetFullyCompleted();
     final numbersDone = await ProgressService.isNumbersFullyCompleted();
+    final shapesDone = await ShapesProgressService.isShapesFullyCompleted();
 
     if (!mounted) return;
 
     setState(() {
       _alphaCompleted = alphaDone;
       _numbersCompleted = numbersDone;
+      _shapesCompleted = shapesDone;
     });
   }
 
