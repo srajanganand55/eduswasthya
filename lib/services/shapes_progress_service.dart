@@ -1,10 +1,11 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/shapes_progress_service.dart';
 
 class ShapesProgressService {
   static const String shapesKey = "shapes_completed_items";
 
   /// total shapes in Nursery (we start with 8 — can expand later)
-  static const int totalShapes = 8;
+  static const int totalShapes = 7;
 
   /// Get completed shapes safely
   static Future<List<int>> getCompletedShapes() async {

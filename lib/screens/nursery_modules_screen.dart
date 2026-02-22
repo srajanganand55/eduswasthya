@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/progress_service.dart';
+import '../services/shapes_progress_service.dart';
 import 'alphabet_list_screen.dart';
 import 'numbers_list_screen.dart';
 import 'shapes_list_screen.dart';
-import '../services/shapes_progress_service.dart';
 
 class NurseryModulesScreen extends StatefulWidget {
   const NurseryModulesScreen({super.key});
@@ -24,10 +24,14 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
     _loadProgress();
   }
 
+  // ✅ FIXED — loads ALL module progress
   Future<void> _loadProgress() async {
-    final alphaDone = await ProgressService.isAlphabetFullyCompleted();
-    final numbersDone = await ProgressService.isNumbersFullyCompleted();
-    final shapesDone = await ShapesProgressService.isShapesFullyCompleted();
+    final alphaDone =
+        await ProgressService.isAlphabetFullyCompleted();
+    final numbersDone =
+        await ProgressService.isNumbersFullyCompleted();
+    final shapesDone =
+        await ShapesProgressService.isShapesFullyCompleted();
 
     if (!mounted) return;
 
@@ -51,11 +55,9 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
           crossAxisCount: 2,
           crossAxisSpacing: 18,
           mainAxisSpacing: 18,
-
-          // ⭐ SAFE UNIVERSAL RATIO
-          childAspectRatio: 0.78,
-
+          childAspectRatio: 0.92,
           children: [
+            // ✅ ALPHABETS
             _PremiumTile(
               title: "Alphabets",
               color: Colors.orange,
@@ -71,6 +73,8 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
                 _loadProgress();
               },
             ),
+
+            // ✅ NUMBERS
             _PremiumTile(
               title: "Numbers",
               color: Colors.blue,
@@ -86,7 +90,25 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
                 _loadProgress();
               },
             ),
-            _lockedTile("Shapes", Colors.purple),
+
+            // ✅ SHAPES — NOW UNLOCKED
+            _PremiumTile(
+              title: "Shapes",
+              color: Colors.purple,
+              imagePath: "assets/images/shapes_icon.png",
+              isCompleted: _shapesCompleted,
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ShapesListScreen(),
+                  ),
+                );
+                _loadProgress();
+              },
+            ),
+
+            // 🔒 FUTURE MODULES
             _lockedTile("Colours", Colors.teal),
             _lockedTile("Animals", Colors.green),
             _lockedTile("Fruits", Colors.redAccent),
@@ -96,23 +118,33 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
     );
   }
 
+  // ================= LOCKED TILE =================
+
   Widget _lockedTile(String title, Color color) {
     return Container(
       decoration: BoxDecoration(
-        color: color.withOpacity(0.85),
-        borderRadius: BorderRadius.circular(26),
+        color: color.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.lock, size: 44, color: Colors.white),
-          SizedBox(height: 12),
+        children: [
+          const Icon(Icons.lock, size: 44, color: Colors.white),
+          const SizedBox(height: 12),
           Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
             "Coming Soon",
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              color: Colors.white70,
+              fontSize: 14,
             ),
           ),
         ],
@@ -120,6 +152,10 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
     );
   }
 }
+
+//
+// ================= PREMIUM TILE =================
+//
 
 class _PremiumTile extends StatefulWidget {
   final String title;
@@ -152,7 +188,7 @@ class _PremiumTileState extends State<_PremiumTile>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 120),
-      reverseDuration: const Duration(milliseconds: 160),
+      reverseDuration: const Duration(milliseconds: 180),
     );
 
     _scale = Tween(begin: 1.0, end: 0.95).animate(
@@ -190,60 +226,67 @@ class _PremiumTileState extends State<_PremiumTile>
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(26),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        widget.color.withOpacity(0.95),
-                        widget.color,
-                      ],
-                    ),
+                    borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.22),
+                        color: Colors.black.withOpacity(0.18),
                         blurRadius: 18,
                         offset: const Offset(0, 10),
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 18,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Center(
-                          child: Image.asset(
-                            widget.imagePath,
-                            fit: BoxFit.contain,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            widget.color.withOpacity(0.95),
+                            widget.color.withOpacity(0.85),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            flex: 65,
+                            child: Center(
+                              child: Image.asset(
+                                widget.imagePath,
+                                height: 92,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
                           ),
-                        ),
+                          Expanded(
+                            flex: 35,
+                            child: Center(
+                              child: Text(
+                                widget.title,
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        widget.title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
 
-                // ✅ completion badge
+                // ✅ COMPLETION BADGE
                 if (widget.isCompleted)
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: 10,
+                    right: 10,
                     child: Container(
-                      height: 30,
-                      width: 30,
+                      height: 34,
+                      width: 34,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
@@ -257,7 +300,7 @@ class _PremiumTileState extends State<_PremiumTile>
                       child: const Icon(
                         Icons.check,
                         color: Colors.green,
-                        size: 18,
+                        size: 22,
                       ),
                     ),
                   ),

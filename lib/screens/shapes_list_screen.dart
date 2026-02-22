@@ -13,16 +13,14 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
   int _nextIndex = 0;
   List<int> _completed = [];
 
-  /// ⭐ Nursery shapes (keep order fixed)
   static const List<Map<String, String>> shapesData = [
-    {"name": "Circle", "image": "assets/images/shapes/circle.png"},
-    {"name": "Square", "image": "assets/images/shapes/square.png"},
-    {"name": "Triangle", "image": "assets/images/shapes/triangle.png"},
-    {"name": "Rectangle", "image": "assets/images/shapes/rectangle.png"},
-    {"name": "Star", "image": "assets/images/shapes/star.png"},
-    {"name": "Heart", "image": "assets/images/shapes/heart.png"},
-    {"name": "Oval", "image": "assets/images/shapes/oval.png"},
-    {"name": "Diamond", "image": "assets/images/shapes/diamond.png"},
+    {"name": "Circle", "image": "assets/images/circle.png"},
+    {"name": "Square", "image": "assets/images/square.png"},
+    {"name": "Triangle", "image": "assets/images/triangle.png"},
+    {"name": "Rectangle", "image": "assets/images/rectangle.png"},
+    {"name": "Star", "image": "assets/images/star.png"},
+    {"name": "Oval", "image": "assets/images/oval.png"},
+    {"name": "Diamond", "image": "assets/images/diamond.png"},
   ];
 
   @override
@@ -60,9 +58,7 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
       ),
       body: Column(
         children: [
-          /// ⭐ Continue learning banner
-          if (_nextIndex < shapesData.length)
-            _continueBanner(),
+          if (_nextIndex < shapesData.length) _continueBanner(),
 
           Expanded(
             child: Padding(
@@ -74,7 +70,7 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 0.95,
+                  childAspectRatio: 0.82,
                 ),
                 itemBuilder: (context, index) {
                   final shape = shapesData[index];
@@ -139,7 +135,7 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
     );
   }
 
-  // ================= TILE =================
+  // ================= FINAL PREMIUM TILE =================
 
   Widget _shapeTile({
     required int index,
@@ -166,22 +162,41 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
         ),
         child: Stack(
           children: [
-            Center(
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    image,
-                    height: 90,
-                    fit: BoxFit.contain,
+                  /// ⭐ HARD SIZE NORMALIZER (THIS FIXES EVERYTHING)
+                  Expanded(
+                    flex: 7,
+                    child: Center(
+                      child: SizedBox(
+                        width: 110,
+                        height: 110,
+                        child: FittedBox(
+                          fit: BoxFit.contain,
+                          child: Image.asset(image),
+                        ),
+                      ),
+                    ),
                   ),
+
                   const SizedBox(height: 8),
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+
+                  Expanded(
+                    flex: 3,
+                    child: Center(
+                      child: Text(
+                        name,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -199,8 +214,8 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
               const Positioned(
                 top: 8,
                 left: 8,
-                child: Icon(Icons.check_circle,
-                    color: Colors.white),
+                child:
+                    Icon(Icons.check_circle, color: Colors.white),
               ),
           ],
         ),
