@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'services/tts_service.dart';
+import 'features/nursery/colours/presentation/colours_list_screen.dart';
 
 /// ⭐ Route observer used to detect when we return to a screen
 final RouteObserver<ModalRoute<void>> routeObserver =

@@ -4,6 +4,7 @@ import '../services/shapes_progress_service.dart';
 import 'alphabet_list_screen.dart';
 import 'numbers_list_screen.dart';
 import 'shapes_list_screen.dart';
+import '../features/nursery/colours/presentation/colours_list_screen.dart';
 
 class NurseryModulesScreen extends StatefulWidget {
   const NurseryModulesScreen({super.key});
@@ -17,6 +18,7 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
   bool _alphaCompleted = false;
   bool _numbersCompleted = false;
   bool _shapesCompleted = false;
+  bool _coloursCompleted = false; // ✅ NEW
 
   @override
   void initState() {
@@ -24,7 +26,7 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
     _loadProgress();
   }
 
-  // ✅ FIXED — loads ALL module progress
+  // ✅ loads ALL module progress
   Future<void> _loadProgress() async {
     final alphaDone =
         await ProgressService.isAlphabetFullyCompleted();
@@ -33,12 +35,16 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
     final shapesDone =
         await ShapesProgressService.isShapesFullyCompleted();
 
+    // ✅ TEMP for Step 5 (real wiring in Step 7)
+    const coloursDone = false;
+
     if (!mounted) return;
 
     setState(() {
       _alphaCompleted = alphaDone;
       _numbersCompleted = numbersDone;
       _shapesCompleted = shapesDone;
+      _coloursCompleted = coloursDone; // ✅ NEW
     });
   }
 
@@ -91,7 +97,7 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
               },
             ),
 
-            // ✅ SHAPES — NOW UNLOCKED
+            // ✅ SHAPES
             _PremiumTile(
               title: "Shapes",
               color: Colors.purple,
@@ -108,8 +114,24 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
               },
             ),
 
+            // ✅ COLOURS — NOW LIVE
+            _PremiumTile(
+              title: "Colours",
+              color: Colors.teal,
+              imagePath: "assets/images/colours_icon.png",
+              isCompleted: _coloursCompleted,
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ColoursListScreen(),
+                  ),
+                );
+                _loadProgress();
+              },
+            ),
+
             // 🔒 FUTURE MODULES
-            _lockedTile("Colours", Colors.teal),
             _lockedTile("Animals", Colors.green),
             _lockedTile("Fruits", Colors.redAccent),
           ],
