@@ -26,15 +26,16 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
     {"name": "Diamond", "image": "assets/images/diamond.png"},
   ];
 
+  bool get _isFirst => currentIndex == 0;
+  bool get _isLast => currentIndex == shapes.length - 1;
+
   @override
   void initState() {
     super.initState();
     currentIndex = widget.index;
 
-    // ⭐ mark progress immediately (nursery-friendly)
     ShapesProgressService.markShapeCompleted(currentIndex);
 
-    // ⭐ auto speak
     Future.delayed(const Duration(milliseconds: 400), () {
       _speakShape();
     });
@@ -48,10 +49,7 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
   Future<void> _goNext() async {
     await ShapesProgressService.markShapeCompleted(currentIndex);
 
-    if (currentIndex < shapes.length - 1) {
-      setState(() => currentIndex++);
-      Future.delayed(const Duration(milliseconds: 300), _speakShape);
-    } else {
+    if (_isLast) {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -59,16 +57,18 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
           builder: (_) => const ShapesCompleteScreen(),
         ),
       );
+      return;
     }
+
+    setState(() => currentIndex++);
+    Future.delayed(const Duration(milliseconds: 300), _speakShape);
   }
 
   void _goPrevious() {
-    if (currentIndex > 0) {
-      setState(() => currentIndex--);
-      Future.delayed(const Duration(milliseconds: 300), _speakShape);
-    } else {
-      Navigator.pop(context);
-    }
+    if (_isFirst) return;
+
+    setState(() => currentIndex--);
+    Future.delayed(const Duration(milliseconds: 300), _speakShape);
   }
 
   @override
@@ -83,14 +83,12 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            /// ===== MAIN CONTENT =====
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    /// 🔷 BIG SHAPE NAME
                     Text(
                       shape["name"]!,
                       textAlign: TextAlign.center,
@@ -100,10 +98,7 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
                         color: AppTheme.primaryColor,
                       ),
                     ),
-
                     const SizedBox(height: 28),
-
-                    /// 🔷 DOMINANT IMAGE (KEY UPGRADE)
                     SizedBox(
                       height: 220,
                       child: FittedBox(
@@ -111,10 +106,7 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
                         child: Image.asset(shape["image"]!),
                       ),
                     ),
-
                     const SizedBox(height: 36),
-
-                    /// 🔊 PREMIUM BUTTON
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -124,9 +116,8 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.deepPurple,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 18,
-                          ),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 18),
                           textStyle: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -143,58 +134,85 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
               ),
             ),
 
-            /// ===== NAV BAR =====
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
               child: Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: _goPrevious,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade400,
-                        foregroundColor: Colors.black87,
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                      ),
-                      child: const Text(
-                        "Previous",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    child: _PillNavButton(
+                      label: "Previous",
+                      enabled: !_isFirst,
+                      enabledColor: Colors.orange,
+                      disabledColor: Colors.grey.shade400,
+                      onTap: _goPrevious,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 20),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: _goNext,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                      ),
-                      child: const Text(
-                        "Next",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    child: _PillNavButton(
+                      label: "Next",
+                      enabled: true, // ⭐ always enabled
+                      enabledColor: const Color(0xFF1F8A9E),
+                      disabledColor: Colors.grey.shade400,
+                      onTap: _goNext,
                     ),
                   ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// ⭐ shared button
+class _PillNavButton extends StatelessWidget {
+  final String label;
+  final bool enabled;
+  final Color enabledColor;
+  final Color disabledColor;
+  final VoidCallback onTap;
+
+  const _PillNavButton({
+    required this.label,
+    required this.enabled,
+    required this.enabledColor,
+    required this.disabledColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bgColor = enabled ? enabledColor : disabledColor;
+
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        height: 64,
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : [],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.deepPurple,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ),
       ),
     );

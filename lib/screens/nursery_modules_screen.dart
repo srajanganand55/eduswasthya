@@ -5,6 +5,7 @@ import 'alphabet_list_screen.dart';
 import 'numbers_list_screen.dart';
 import 'shapes_list_screen.dart';
 import '../features/nursery/colours/presentation/colours_list_screen.dart';
+import '../features/nursery/colours/services/colours_progress_service.dart';
 
 class NurseryModulesScreen extends StatefulWidget {
   const NurseryModulesScreen({super.key});
@@ -34,9 +35,10 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
         await ProgressService.isNumbersFullyCompleted();
     final shapesDone =
         await ShapesProgressService.isShapesFullyCompleted();
+    final coloursDone =
+        await ColoursProgressService.isColoursFullyCompleted();
 
     // ✅ TEMP for Step 5 (real wiring in Step 7)
-    const coloursDone = false;
 
     if (!mounted) return;
 
