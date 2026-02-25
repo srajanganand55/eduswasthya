@@ -16,25 +16,51 @@ class ColoursProgressService {
     'brown',
   ];
 
-  // ✅ mark single colour complete
+  // ============================================================
+  // ✅ MARK SINGLE COLOUR COMPLETE
+  // ============================================================
+
   static Future<void> markColourCompleted(String id) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('$_prefix$id', true);
   }
 
-  // ⭐ store last index
+  // ============================================================
+  // ✅ CHECK SINGLE COLOUR (⭐ REQUIRED BY GRID)
+  // ============================================================
+
+  static Future<bool> isColourCompleted(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('$_prefix$id') ?? false;
+  }
+
+  // ============================================================
+  // ⭐ STORE LAST INDEX (for Continue banner)
+  // ============================================================
+
   static Future<void> setLastIndex(int index) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_lastIndexKey, index);
   }
 
-  // ⭐ get last index
+  // ============================================================
+  // ⭐ GET LAST INDEX (SELF-HEALING)
+  // ============================================================
+
   static Future<int?> getLastIndex() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_lastIndexKey);
+    final value = prefs.getInt(_lastIndexKey);
+
+    if (value == null) return null;
+    if (value < 0 || value >= _allIds.length) return null;
+
+    return value;
   }
 
-  // ⭐ check if partially completed
+  // ============================================================
+  // ⭐ CHECK PARTIAL PROGRESS
+  // ============================================================
+
   static Future<bool> hasStartedButNotFinished() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -50,7 +76,10 @@ class ColoursProgressService {
     return anyCompleted && !allCompleted;
   }
 
-  // ✅ full completion
+  // ============================================================
+  // ✅ FULL COMPLETION CHECK
+  // ============================================================
+
   static Future<bool> isColoursFullyCompleted() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -64,14 +93,19 @@ class ColoursProgressService {
     return true;
   }
 
-  // ⭐⭐⭐ ADD THIS — RESET PROGRESS ⭐⭐⭐
+  // ============================================================
+  // ⭐⭐⭐ RESET PROGRESS (WORKFLOW CRITICAL)
+  // ============================================================
+
   static Future<void> resetColoursProgress() async {
     final prefs = await SharedPreferences.getInstance();
 
+    // remove individual colour flags
     for (final id in _allIds) {
       await prefs.remove('$_prefix$id');
     }
 
+    // remove module flags
     await prefs.remove(_completedKey);
     await prefs.remove(_lastIndexKey);
   }

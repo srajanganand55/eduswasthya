@@ -3,6 +3,7 @@ import 'package:confetti/confetti.dart';
 import '../../../../../screens/nursery_modules_screen.dart';
 import '../services/colours_progress_service.dart';
 import '../../../../../services/tts_service.dart';
+import 'colours_list_screen.dart';
 
 class ColoursCompleteScreen extends StatefulWidget {
   const ColoursCompleteScreen({super.key});
@@ -63,9 +64,9 @@ Future<void> _restartColours() async {
   Navigator.pushAndRemoveUntil(
     context,
     MaterialPageRoute(
-      builder: (_) => const NurseryModulesScreen(),
+      builder: (_) => ColoursListScreen(),
     ),
-    (route) => false,
+    (route) => route.isFirst,
   );
 }
 

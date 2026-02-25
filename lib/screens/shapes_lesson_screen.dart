@@ -33,12 +33,18 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
   void initState() {
     super.initState();
     currentIndex = widget.index;
+    _markAndSpeak();
+  }
 
-    ShapesProgressService.markShapeCompleted(currentIndex);
+  // ================= PROGRESS + TTS =================
 
-    Future.delayed(const Duration(milliseconds: 400), () {
-      _speakShape();
-    });
+  Future<void> _markAndSpeak() async {
+    await ShapesProgressService.markShapeCompleted(currentIndex);
+
+    await Future.delayed(const Duration(milliseconds: 350));
+
+    if (!mounted) return;
+    await _speakShape();
   }
 
   Future<void> _speakShape() async {
@@ -46,9 +52,15 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
     await TTSService().speak(name);
   }
 
-  Future<void> _goNext() async {
-    await ShapesProgressService.markShapeCompleted(currentIndex);
+  // ================= SAFE BACK =================
 
+  void _handleBack() {
+    Navigator.pop(context);
+  }
+
+  // ================= NAV =================
+
+  Future<void> _goNext() async {
     if (_isLast) {
       if (!mounted) return;
       Navigator.pushReplacement(
@@ -61,15 +73,17 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
     }
 
     setState(() => currentIndex++);
-    Future.delayed(const Duration(milliseconds: 300), _speakShape);
+    await _markAndSpeak();
   }
 
-  void _goPrevious() {
+  Future<void> _goPrevious() async {
     if (_isFirst) return;
 
     setState(() => currentIndex--);
-    Future.delayed(const Duration(milliseconds: 300), _speakShape);
+    await _markAndSpeak();
   }
+
+  // ================= UI =================
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +93,12 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
       appBar: AppBar(
         title: const Text("Shapes Lesson"),
         backgroundColor: AppTheme.primaryColor,
+
+        // ⭐⭐⭐ CRITICAL FIX — explicit back control ⭐⭐⭐
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: _handleBack,
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -151,7 +171,7 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
                   Expanded(
                     child: _PillNavButton(
                       label: "Next",
-                      enabled: true, // ⭐ always enabled
+                      enabled: true,
                       enabledColor: const Color(0xFF1F8A9E),
                       disabledColor: Colors.grey.shade400,
                       onTap: _goNext,

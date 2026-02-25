@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/shapes_progress_service.dart';
 import 'shapes_lesson_screen.dart';
+import '../main.dart';
+import '../theme/app_theme.dart';
 
 class ShapesListScreen extends StatefulWidget {
   const ShapesListScreen({super.key});
@@ -9,7 +11,9 @@ class ShapesListScreen extends StatefulWidget {
   State<ShapesListScreen> createState() => _ShapesListScreenState();
 }
 
-class _ShapesListScreenState extends State<ShapesListScreen> {
+class _ShapesListScreenState extends State<ShapesListScreen>
+    with RouteAware {
+
   int _nextIndex = 0;
   List<int> _completed = [];
 
@@ -29,13 +33,38 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
     _loadProgress();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _loadProgress();
+  }
+
+  // ================= LOAD =================
+
   Future<void> _loadProgress() async {
     final completed =
         await ShapesProgressService.getCompletedShapes();
 
     int next = 0;
-    while (completed.contains(next)) {
-      next++;
+    for (int i = 0; i < shapesData.length; i++) {
+      if (!completed.contains(i)) {
+        next = i;
+        break;
+      }
+      if (i == shapesData.length - 1) {
+        next = shapesData.length - 1;
+      }
     }
 
     if (!mounted) return;
@@ -50,15 +79,22 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
     return index == 0 || _completed.contains(index - 1);
   }
 
+  // ================= UI =================
+
   @override
   Widget build(BuildContext context) {
+    final bool showContinue =
+        _completed.isNotEmpty &&
+        _completed.length < shapesData.length;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Shapes"),
+        backgroundColor: AppTheme.primaryColor,
       ),
       body: Column(
         children: [
-          if (_nextIndex < shapesData.length) _continueBanner(),
+          if (showContinue) _continueBanner(),
 
           Expanded(
             child: Padding(
@@ -93,7 +129,7 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
     );
   }
 
-  // ================= CONTINUE BANNER =================
+  // ================= CONTINUE =================
 
   Widget _continueBanner() {
     return Padding(
@@ -102,17 +138,17 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.orange.shade100,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
           children: [
-            const Icon(Icons.school, size: 28),
+            const Icon(Icons.school, size: 40, color: Colors.orange),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 "Continue learning from ${shapesData[_nextIndex]["name"]}",
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -125,17 +161,17 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
                     builder: (_) =>
                         ShapesLessonScreen(index: _nextIndex),
                   ),
-                ).then((_) => _loadProgress());
+                );
               },
               child: const Text("Start"),
-            ),
+            )
           ],
         ),
       ),
     );
   }
 
-  // ================= FINAL PREMIUM TILE =================
+  // ================= TILE =================
 
   Widget _shapeTile({
     required int index,
@@ -144,6 +180,19 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
     required bool unlocked,
     required bool done,
   }) {
+    // ⭐⭐⭐ CRITICAL — 4 STATE COLOR LOGIC ⭐⭐⭐
+    Color tileColor;
+
+    if (done) {
+      tileColor = Colors.green;
+    } else if (index == _nextIndex) {
+      tileColor = Colors.orange; // current learning tile
+    } else if (unlocked) {
+      tileColor = AppTheme.primaryColor; // unlocked but not current
+    } else {
+      tileColor = Colors.grey.shade400; // locked
+    }
+
     return GestureDetector(
       onTap: unlocked
           ? () {
@@ -152,12 +201,12 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
                 MaterialPageRoute(
                   builder: (_) => ShapesLessonScreen(index: index),
                 ),
-              ).then((_) => _loadProgress());
+              );
             }
           : null,
       child: Container(
         decoration: BoxDecoration(
-          color: unlocked ? Colors.orange : Colors.grey.shade400,
+          color: tileColor,
           borderRadius: BorderRadius.circular(22),
         ),
         child: Stack(
@@ -168,7 +217,6 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  /// ⭐ HARD SIZE NORMALIZER (THIS FIXES EVERYTHING)
                   Expanded(
                     flex: 7,
                     child: Center(
@@ -182,9 +230,7 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   Expanded(
                     flex: 3,
                     child: Center(
@@ -214,8 +260,7 @@ class _ShapesListScreenState extends State<ShapesListScreen> {
               const Positioned(
                 top: 8,
                 left: 8,
-                child:
-                    Icon(Icons.check_circle, color: Colors.white),
+                child: Icon(Icons.check_circle, color: Colors.white),
               ),
           ],
         ),

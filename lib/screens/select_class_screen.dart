@@ -27,78 +27,118 @@ class SelectClassScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Select Class"),
         centerTitle: true,
+        // ✅ keep default back arrow
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(18),
-        child: GridView.builder(
-          itemCount: classes.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 18,
-            mainAxisSpacing: 18,
-            childAspectRatio: 1,
-          ),
-          itemBuilder: (context, index) {
-            final item = classes[index];
-            final title = item["title"] as String;
 
-            return GestureDetector(
-              onTap: () {
+      body: SafeArea(
+        child: Column(
+          children: [
 
-                /// ⭐ SPECIAL FLOW FOR NURSERY
-                if (title == "Nursery") {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NurseryModulesScreen(),
-                    ),
-                  );
-                }
-
-                /// OTHER CLASSES → SUBJECTS SCREEN
-                else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SubjectsScreen(),
-                    ),
-                  );
-                }
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: item["color"] as Color,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 8,
-                      offset: const Offset(2, 4),
-                    )
-                  ],
+            // ⭐ GRID AREA (SCROLL SAFE)
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
+                physics: const BouncingScrollPhysics(),
+                itemCount: classes.length,
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 18,
+                  mainAxisSpacing: 18,
+                  childAspectRatio: 1,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      item["icon"] as IconData,
-                      size: 50,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                itemBuilder: (context, index) {
+                  final item = classes[index];
+                  final title = item["title"] as String;
+
+                  return GestureDetector(
+                    onTap: () {
+                      /// ⭐ SPECIAL FLOW FOR NURSERY
+                      if (title == "Nursery") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NurseryModulesScreen(),
+                          ),
+                        );
+                      }
+
+                      /// OTHER CLASSES → SUBJECTS SCREEN
+                      else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SubjectsScreen(),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: item["color"] as Color,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 10,
+                            offset: const Offset(2, 6),
+                          )
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            item["icon"] as IconData,
+                            size: 50,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  );
+                },
+              ),
+            ),
+
+            // ⭐⭐⭐ PREMIUM BOTTOM BACK BUTTON ⭐⭐⭐
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+              child: SizedBox(
+                width: double.infinity,
+                height: 58,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // ← back to Home
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1F8A9E),
+                    foregroundColor: Colors.white,
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                  child: const Text(
+                    "Back to Home",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );

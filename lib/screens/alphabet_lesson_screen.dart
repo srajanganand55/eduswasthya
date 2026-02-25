@@ -14,7 +14,6 @@ class AlphabetLessonScreen extends StatefulWidget {
 
 class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -52,23 +51,30 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
   void initState() {
     super.initState();
 
-    _controller =
-        AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
 
     _fadeAnimation =
         CurvedAnimation(parent: _controller, curve: Curves.easeIn);
 
-    _scaleAnimation =
-        Tween<double>(begin: 0.85, end: 1.0)
-            .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    );
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 300), () async {
-      await ProgressService.markLetterCompleted(widget.index);
-      final data = alphabetData[widget.index];
-      await TTSService().speak("${data["letter"]} for ${data["word"]}");
-    });
+    _markAndSpeak();
+  }
+
+  Future<void> _markAndSpeak() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    await ProgressService.markLetterCompleted(widget.index);
+
+    final data = alphabetData[widget.index];
+    await TTSService().speak("${data["letter"]} for ${data["word"]}");
   }
 
   @override
@@ -77,15 +83,20 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
     super.dispose();
   }
 
+  // ================= NAV =================
+
   void goNext() async {
     if (widget.index < 25) {
       Navigator.pushReplacement(
         context,
-        _createRoute(AlphabetLessonScreen(index: widget.index + 1)),
+        _createRoute(
+          AlphabetLessonScreen(index: widget.index + 1),
+        ),
       );
     } else {
-      bool done = await ProgressService.isAlphabetFullyCompleted();
-      if (done) {
+      final done = await ProgressService.isAlphabetFullyCompleted();
+
+      if (done && mounted) {
         Navigator.pushReplacement(
           context,
           _createRoute(const AlphabetCompleteScreen()),
@@ -98,7 +109,9 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
     if (widget.index > 0) {
       Navigator.pushReplacement(
         context,
-        _createRoute(AlphabetLessonScreen(index: widget.index - 1)),
+        _createRoute(
+          AlphabetLessonScreen(index: widget.index - 1),
+        ),
       );
     }
   }
@@ -127,7 +140,7 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
     final data = alphabetData[widget.index];
 
     return Scaffold(
-      backgroundColor: Colors.transparent, // ⭐ KEY FIX
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text("Alphabet Lesson"),
         backgroundColor: AppTheme.primaryColor,
@@ -153,33 +166,45 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
                   child: ScaleTransition(
                     scale: _scaleAnimation,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
                       child: Column(
                         children: [
-                          Text(data["letter"]!,
-                              style: const TextStyle(
-                                  fontSize: 95,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor)),
+                          Text(
+                            data["letter"]!,
+                            style: const TextStyle(
+                              fontSize: 95,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
                           const SizedBox(height: 12),
-                          Text("${data["letter"]} for ${data["word"]}",
-                              style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            "${data["letter"]} for ${data["word"]}",
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 25),
                           Image.asset(data["image"]!, height: 200),
                           const SizedBox(height: 35),
                           ElevatedButton.icon(
                             onPressed: () async =>
-                                await TTSService().speak("${data["letter"]} for ${data["word"]}"),
+                                await TTSService().speak(
+                                    "${data["letter"]} for ${data["word"]}"),
                             icon: const Icon(Icons.volume_up, size: 32),
                             label: const Text(
                               "Tap to Hear",
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
-                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 40, vertical: 18),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
@@ -192,6 +217,9 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
                   ),
                 ),
               ),
+
+              // ===== NAV BAR =====
+
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
                 child: Row(
@@ -201,13 +229,18 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
                         onPressed: widget.index > 0 ? goPrevious : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 20),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(24),
                           ),
                         ),
-                        child: const Text("Previous",
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          "Previous",
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -216,13 +249,18 @@ class _AlphabetLessonScreenState extends State<AlphabetLessonScreen>
                         onPressed: goNext,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 20),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(24),
                           ),
                         ),
-                        child: const Text("Next",
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          "Next",
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                   ],

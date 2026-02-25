@@ -3,7 +3,7 @@ import 'package:confetti/confetti.dart';
 import '../theme/app_theme.dart';
 import '../services/shapes_progress_service.dart';
 import '../services/tts_service.dart';
-import 'shapes_lesson_screen.dart';
+import 'shapes_list_screen.dart';
 import 'nursery_modules_screen.dart';
 
 class ShapesCompleteScreen extends StatefulWidget {
@@ -24,19 +24,19 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
   void initState() {
     super.initState();
 
-    // 🎉 confetti
+    /// 🎉 Confetti
     _confettiController =
         ConfettiController(duration: const Duration(seconds: 3))
           ..play();
 
-    // 🔊 voice praise
+    /// 🔊 Voice
     Future.delayed(const Duration(milliseconds: 400), () async {
       await TTSService().speak(
-        "Wonderful! You finished all shapes!",
+        "Fantastic! You finished all shapes. Great job!",
       );
     });
 
-    // 🏆 trophy bounce
+    /// 🏆 Trophy bounce
     _trophyController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -54,6 +54,36 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
     super.dispose();
   }
 
+  // ================= BACK TO SUBJECTS =================
+
+  void _backToSubjects() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const NurseryModulesScreen(),
+      ),
+      (route) => route.isFirst,
+    );
+  }
+
+  // ================= RESTART SHAPES =================
+
+  Future<void> _restartShapes() async {
+    await ShapesProgressService.resetShapesProgress();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ShapesListScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
+  // ================= UI =================
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,13 +95,13 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
       ),
       body: Stack(
         children: [
-          // 🌈 background
+          /// ⭐ Background
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFFFFF3E0),
-                  Color(0xFFFFCC80),
+                  Color(0xFFFFF3CD),
+                  Color(0xFFFFE08A),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -79,7 +109,7 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
             ),
           ),
 
-          // 🎉 confetti widget
+          /// 🎉 Confetti
           Align(
             alignment: Alignment.topCenter,
             child: ConfettiWidget(
@@ -92,7 +122,7 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
             ),
           ),
 
-          // ⭐ content
+          /// ⭐ Content
           SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -109,7 +139,7 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
                 const SizedBox(height: 24),
 
                 const Text(
-                  "Amazing!",
+                  "Fantastic!",
                   style: TextStyle(
                     fontSize: 38,
                     fontWeight: FontWeight.bold,
@@ -131,20 +161,11 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Column(
                     children: [
-                      // 🔙 back to subjects
+                      /// 🔙 Back to Subjects
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const NurseryModulesScreen(),
-                              ),
-                              (route) => route.isFirst,
-                            );
-                          },
+                          onPressed: _backToSubjects,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.primaryColor,
                             padding:
@@ -165,23 +186,11 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
 
                       const SizedBox(height: 16),
 
-                      // 🔄 restart shapes
+                      /// 🔁 Restart
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () async {
-                            await ShapesProgressService
-                                .resetShapesProgress();
-
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const ShapesLessonScreen(index: 0),
-                              ),
-                              (route) => route.isFirst,
-                            );
-                          },
+                          onPressed: _restartShapes,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
                             padding:

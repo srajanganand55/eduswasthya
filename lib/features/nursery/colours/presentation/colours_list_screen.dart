@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../main.dart';
 import '../data/colours_data.dart';
 import '../data/colour_item.dart';
 import '../services/colours_progress_service.dart';
@@ -12,12 +12,17 @@ class ColoursListScreen extends StatefulWidget {
   State<ColoursListScreen> createState() => _ColoursListScreenState();
 }
 
-class _ColoursListScreenState extends State<ColoursListScreen> {
+class _ColoursListScreenState extends State<ColoursListScreen>
+    with RouteAware {
   final List<ColourItem> colours = ColoursData.nurseryColours;
 
   Set<String> completedIds = {};
-  int? lastIndex;
+  int nextIndex = 0;
   bool showContinueBanner = false;
+
+  // ============================================================
+  // LIFECYCLE
+  // ============================================================
 
   @override
   void initState() {
@@ -25,28 +30,52 @@ class _ColoursListScreenState extends State<ColoursListScreen> {
     _loadProgress();
   }
 
-  Future<void> _loadProgress() async {
-    final prefs = await SharedPreferences.getInstance();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
 
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _loadProgress();
+  }
+
+  // ============================================================
+  // PROGRESS LOADER (⭐ FIXED LOGIC)
+  // ============================================================
+
+  Future<void> _loadProgress() async {
     final done = <String>{};
 
     for (final c in colours) {
-      if (prefs.getBool('nursery_colour_${c.id}') ?? false) {
-        done.add(c.id);
-      }
+      final isDone =
+          await ColoursProgressService.isColourCompleted(c.id);
+      if (isDone) done.add(c.id);
+    }
+
+    // ⭐ compute NEXT pending index (correct behaviour)
+    int next = 0;
+    while (next < colours.length &&
+        done.contains(colours[next].id)) {
+      next++;
     }
 
     final partial =
         await ColoursProgressService.hasStartedButNotFinished();
-    final savedIndex =
-        await ColoursProgressService.getLastIndex();
 
     if (!mounted) return;
 
     setState(() {
       completedIds = done;
-      showContinueBanner = partial;
-      lastIndex = savedIndex;
+      nextIndex = next;
+      showContinueBanner = partial && next < colours.length;
     });
   }
 
@@ -64,7 +93,14 @@ class _ColoursListScreenState extends State<ColoursListScreen> {
     _loadProgress();
   }
 
-  // ================= UI =================
+  bool _isUnlocked(int index) {
+    return index == 0 ||
+        completedIds.contains(colours[index - 1].id);
+  }
+
+  // ============================================================
+  // UI
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -72,10 +108,10 @@ class _ColoursListScreenState extends State<ColoursListScreen> {
       appBar: AppBar(title: const Text('Colours')),
       body: Column(
         children: [
-          if (showContinueBanner && lastIndex != null)
+          if (showContinueBanner)
             _ContinueBanner(
-              colourName: colours[lastIndex!].name,
-              onTap: () => _openLesson(lastIndex!),
+              colourName: colours[nextIndex].name,
+              onTap: () => _openLesson(nextIndex),
             ),
 
           Expanded(
@@ -96,9 +132,11 @@ class _ColoursListScreenState extends State<ColoursListScreen> {
                 final tileColor = _getSoftColour(colour.id);
                 final isDone =
                     completedIds.contains(colour.id);
+                final unlocked = _isUnlocked(index);
 
                 return GestureDetector(
-                  onTap: () => _openLesson(index),
+                  onTap:
+                      unlocked ? () => _openLesson(index) : null,
                   child: Stack(
                     children: [
                       Container(
@@ -149,10 +187,18 @@ class _ColoursListScreenState extends State<ColoursListScreen> {
                       ),
 
                       if (isDone)
-                        Positioned(
+                        const Positioned(
                           top: 10,
                           right: 10,
                           child: _DoneBadge(),
+                        ),
+
+                      if (!unlocked)
+                        const Positioned(
+                          top: 10,
+                          left: 10,
+                          child: Icon(Icons.lock,
+                              color: Colors.white),
                         ),
                     ],
                   ),
@@ -165,7 +211,9 @@ class _ColoursListScreenState extends State<ColoursListScreen> {
     );
   }
 
-  // ================= COLOR HELPERS =================
+  // ============================================================
+  // COLOR HELPERS
+  // ============================================================
 
   Color _getSoftColour(String id) {
     switch (id) {
@@ -191,16 +239,14 @@ class _ColoursListScreenState extends State<ColoursListScreen> {
   }
 
   Color _getStrongColour(String id) {
-    switch (id) {
-      case 'yellow':
-        return Colors.orange.shade800;
-      default:
-        return _getSoftColour(id);
-    }
+    if (id == 'yellow') return Colors.orange.shade800;
+    return _getSoftColour(id);
   }
 }
 
-// ================= CONTINUE BANNER =================
+// ============================================================
+// CONTINUE BANNER (UNIFORM)
+// ============================================================
 
 class _ContinueBanner extends StatelessWidget {
   final String colourName;
@@ -214,67 +260,48 @@ class _ContinueBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 16,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF1F8A9E),
-                Color(0xFF4FB6C2),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.18),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade100,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.school,
+                size: 40, color: Colors.orange),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                "Continue learning from $colourName",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ],
-          ),
-          child: Text(
-            "Continue Learning — $colourName",
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
             ),
-          ),
+            ElevatedButton(
+              onPressed: onTap,
+              child: const Text("Start"),
+            )
+          ],
         ),
       ),
     );
   }
 }
 
-// ================= DONE BADGE =================
+// ============================================================
+// DONE BADGE
+// ============================================================
 
 class _DoneBadge extends StatelessWidget {
+  const _DoneBadge();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 34,
-      width: 34,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 6,
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.check,
-        color: Colors.green,
-        size: 22,
-      ),
-    );
+    return Icon(Icons.check_circle,
+        color: Colors.green, size: 28);
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../services/numbers_progress_service.dart';
+import '../services/progress_service.dart';
 import 'numbers_lesson_screen.dart';
 import '../main.dart';
 
@@ -16,6 +16,7 @@ class _NumbersListScreenState extends State<NumbersListScreen>
 
   List<int> completedNumbers = [];
   int nextNumberIndex = 0;
+  bool showContinue = false;
 
   @override
   void initState() {
@@ -40,9 +41,22 @@ class _NumbersListScreenState extends State<NumbersListScreen>
     loadProgress();
   }
 
-  Future<void> loadProgress() async {
-    completedNumbers = await NumbersProgressService.getCompletedNumbers();
+  // ================= LOAD PROGRESS =================
 
+  Future<void> loadProgress() async {
+    completedNumbers.clear();
+
+    // ⭐ rebuild completed list from unified service
+    for (int i = 0; i < 10; i++) {
+      final done = await ProgressService.isNumberCompleted(i);
+      if (done) completedNumbers.add(i);
+    }
+
+    // ⭐ partial detection (single source of truth)
+    showContinue =
+        await ProgressService.hasStartedNumbersButNotFinished();
+
+    // ⭐ find first incomplete
     nextNumberIndex = 0;
     for (int i = 0; i < 10; i++) {
       if (!completedNumbers.contains(i)) {
@@ -52,11 +66,15 @@ class _NumbersListScreenState extends State<NumbersListScreen>
       if (i == 9) nextNumberIndex = 9;
     }
 
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   bool isCompleted(int i) => completedNumbers.contains(i);
-  bool isUnlocked(int i) => i == 0 || completedNumbers.contains(i - 1);
+
+  bool isUnlocked(int i) =>
+      i == 0 || completedNumbers.contains(i - 1);
+
+  // ================= UI =================
 
   @override
   Widget build(BuildContext context) {
@@ -70,25 +88,42 @@ class _NumbersListScreenState extends State<NumbersListScreen>
       body: Column(
         children: [
 
-          /// Continue Learning Banner
-          if (completedNumbers.isNotEmpty && completedNumbers.length < 10)
+          /// ===== CONTINUE BANNER (STANDARDIZED) =====
+          if (showContinue)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 18),
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade100,
-                  borderRadius: BorderRadius.circular(18),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.orange.shade300,
+                      Colors.orange.shade200,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.school, size: 40, color: Colors.orange),
+                    const Icon(Icons.school,
+                        size: 40, color: Colors.white),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         "Continue learning from Number ${numbers[nextNumberIndex]}",
                         style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     ElevatedButton(
@@ -97,23 +132,29 @@ class _NumbersListScreenState extends State<NumbersListScreen>
                           context,
                           MaterialPageRoute(
                             builder: (_) =>
-                                NumbersLessonScreen(index: nextNumberIndex),
+                                NumbersLessonScreen(
+                                    index: nextNumberIndex),
                           ),
                         );
                       },
-                      child: const Text("Start"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.orange,
+                      ),
+                      child: const Text("Continue"),
                     )
                   ],
                 ),
               ),
             ),
 
-          /// Numbers Grid
+          /// ===== GRID =====
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: numbers.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 crossAxisSpacing: 14,
                 mainAxisSpacing: 14,
@@ -134,7 +175,8 @@ class _NumbersListScreenState extends State<NumbersListScreen>
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => NumbersLessonScreen(index: i),
+                              builder: (_) =>
+                                  NumbersLessonScreen(index: i),
                             ),
                           );
                         }
@@ -144,7 +186,8 @@ class _NumbersListScreenState extends State<NumbersListScreen>
                       Container(
                         decoration: BoxDecoration(
                           color: tileColor,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius:
+                              BorderRadius.circular(20),
                         ),
                         child: Center(
                           child: Text(

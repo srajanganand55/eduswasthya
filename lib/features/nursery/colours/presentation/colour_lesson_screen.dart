@@ -28,16 +28,28 @@ class _ColourLessonScreenState extends State<ColourLessonScreen> {
   bool get _isFirst => _currentIndex == 0;
   bool get _isLast => _currentIndex == widget.colours.length - 1;
 
+  // ============================================================
+  // INIT
+  // ============================================================
+
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _initTts();
+
+    // ⭐ mark current colour complete
     _markCompleted();
+
+    // ⭐ IMPORTANT: store NEXT index (not current)
+    _storeNextIndex();
+
     _speakColour();
   }
 
-  // ================= TTS =================
+  // ============================================================
+  // TTS
+  // ============================================================
 
   Future<void> _initTts() async {
     _tts = FlutterTts();
@@ -63,20 +75,37 @@ class _ColourLessonScreenState extends State<ColourLessonScreen> {
     }
   }
 
-  // ================= PROGRESS =================
+  // ============================================================
+  // PROGRESS
+  // ============================================================
 
   Future<void> _markCompleted() async {
     await ColoursProgressService.markColourCompleted(colour.id);
   }
 
-  // ================= NAV =================
+  /// ⭐ ALWAYS store the NEXT colour to learn
+  Future<void> _storeNextIndex() async {
+    int nextIndex = _currentIndex + 1;
 
-  // ✅ NEXT (FIXED — handles completion)
-  void _next() async {
+    if (nextIndex >= widget.colours.length) {
+      nextIndex = widget.colours.length;
+    }
+
+    await ColoursProgressService.setLastIndex(nextIndex);
+  }
+
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
+
+  // ✅ NEXT (FULLY FIXED)
+  Future<void> _next() async {
     await _markCompleted();
 
-    // ⭐ LAST ITEM → GO TO COMPLETION
+    // ⭐ LAST ITEM → COMPLETION
     if (_isLast) {
+      await ColoursProgressService.setLastIndex(widget.colours.length);
+
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -87,18 +116,28 @@ class _ColourLessonScreenState extends State<ColourLessonScreen> {
       return;
     }
 
-    // ⭐ OTHERWISE → MOVE FORWARD
-    setState(() => _currentIndex++);
-    await ColoursProgressService.setLastIndex(_currentIndex);
+    // ⭐ MOVE FORWARD
+    final nextIndex = _currentIndex + 1;
+
+    setState(() => _currentIndex = nextIndex);
+
+    await ColoursProgressService.setLastIndex(nextIndex + 1);
+    await _markCompleted();
+
     _speakColour();
   }
 
-  // ✅ PREVIOUS (RESTORED — this was missing)
-  void _previous() async {
+  // ✅ PREVIOUS (SAFE)
+  Future<void> _previous() async {
     if (_isFirst) return;
 
-    setState(() => _currentIndex--);
-    await ColoursProgressService.setLastIndex(_currentIndex);
+    final prevIndex = _currentIndex - 1;
+
+    setState(() => _currentIndex = prevIndex);
+
+    // ⭐ store correct next index after going back
+    await ColoursProgressService.setLastIndex(prevIndex + 1);
+
     await _markCompleted();
     _speakColour();
   }
@@ -109,7 +148,9 @@ class _ColourLessonScreenState extends State<ColourLessonScreen> {
     super.dispose();
   }
 
-  // ================= UI =================
+  // ============================================================
+  // UI
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +218,7 @@ class _ColourLessonScreenState extends State<ColourLessonScreen> {
                   Expanded(
                     child: _PillNavButton(
                       label: "Next",
-                      enabled: true, // ⭐ ALWAYS enabled
+                      enabled: true,
                       enabledColor: const Color(0xFF1F8A9E),
                       disabledColor: Colors.grey.shade400,
                       onTap: _next,
@@ -194,7 +235,9 @@ class _ColourLessonScreenState extends State<ColourLessonScreen> {
     );
   }
 
-  // ================= COLOR MAPS =================
+  // ============================================================
+  // COLOR MAPS
+  // ============================================================
 
   Color _getSoftColour(String id) {
     switch (id) {
@@ -229,7 +272,9 @@ class _ColourLessonScreenState extends State<ColourLessonScreen> {
   }
 }
 
-// ================= BUTTON =================
+// ============================================================
+// BUTTON
+// ============================================================
 
 class _PillNavButton extends StatelessWidget {
   final String label;

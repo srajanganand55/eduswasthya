@@ -19,7 +19,7 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
   bool _alphaCompleted = false;
   bool _numbersCompleted = false;
   bool _shapesCompleted = false;
-  bool _coloursCompleted = false; // ✅ NEW
+  bool _coloursCompleted = false;
 
   @override
   void initState() {
@@ -38,15 +38,13 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
     final coloursDone =
         await ColoursProgressService.isColoursFullyCompleted();
 
-    // ✅ TEMP for Step 5 (real wiring in Step 7)
-
     if (!mounted) return;
 
     setState(() {
       _alphaCompleted = alphaDone;
       _numbersCompleted = numbersDone;
       _shapesCompleted = shapesDone;
-      _coloursCompleted = coloursDone; // ✅ NEW
+      _coloursCompleted = coloursDone;
     });
   }
 
@@ -57,85 +55,127 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
         title: const Text("Nursery Learning"),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(18),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 18,
-          mainAxisSpacing: 18,
-          childAspectRatio: 0.92,
+
+      // ⭐⭐⭐ UPDATED BODY ⭐⭐⭐
+      body: SafeArea(
+        child: Column(
           children: [
-            // ✅ ALPHABETS
-            _PremiumTile(
-              title: "Alphabets",
-              color: Colors.orange,
-              imagePath: "assets/images/alphabets_icon.png",
-              isCompleted: _alphaCompleted,
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AlphabetListScreen(),
+            Expanded(
+              child: GridView.count(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
+                physics: const BouncingScrollPhysics(),
+                crossAxisCount: 2,
+                crossAxisSpacing: 18,
+                mainAxisSpacing: 18,
+                childAspectRatio: 0.92,
+                children: [
+                  // ✅ ALPHABETS
+                  _PremiumTile(
+                    title: "Alphabets",
+                    color: Colors.orange,
+                    imagePath: "assets/images/alphabets_icon.png",
+                    isCompleted: _alphaCompleted,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AlphabetListScreen(),
+                        ),
+                      );
+                      _loadProgress();
+                    },
                   ),
-                );
-                _loadProgress();
-              },
+
+                  // ✅ NUMBERS
+                  _PremiumTile(
+                    title: "Numbers",
+                    color: Colors.blue,
+                    imagePath: "assets/images/numbers_icon.png",
+                    isCompleted: _numbersCompleted,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NumbersListScreen(),
+                        ),
+                      );
+                      _loadProgress();
+                    },
+                  ),
+
+                  // ✅ SHAPES
+                  _PremiumTile(
+                    title: "Shapes",
+                    color: Colors.purple,
+                    imagePath: "assets/images/shapes_icon.png",
+                    isCompleted: _shapesCompleted,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ShapesListScreen(),
+                        ),
+                      );
+                      _loadProgress();
+                    },
+                  ),
+
+                  // ✅ COLOURS
+                  _PremiumTile(
+                    title: "Colours",
+                    color: Colors.teal,
+                    imagePath: "assets/images/colours_icon.png",
+                    isCompleted: _coloursCompleted,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ColoursListScreen(),
+                        ),
+                      );
+                      _loadProgress();
+                    },
+                  ),
+
+                  // 🔒 RHYMES (placeholder — ready for future)
+                  _lockedTile("Rhymes", Colors.indigo),
+
+                  // 🔒 PROGRESS REPORT (premium perception booster)
+                  _lockedTile("Progress Report", Colors.brown),
+
+                  // 🔒 FUTURE
+                  _lockedTile("Animals", Colors.green),
+                  _lockedTile("Fruits", Colors.redAccent),
+                ],
+              ),
             ),
 
-            // ✅ NUMBERS
-            _PremiumTile(
-              title: "Numbers",
-              color: Colors.blue,
-              imagePath: "assets/images/numbers_icon.png",
-              isCompleted: _numbersCompleted,
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const NumbersListScreen(),
+            // ⭐ PREMIUM BOTTOM BACK BUTTON
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+              child: SizedBox(
+                width: double.infinity,
+                height: 58,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1F8A9E),
+                    foregroundColor: Colors.white,
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
                   ),
-                );
-                _loadProgress();
-              },
-            ),
-
-            // ✅ SHAPES
-            _PremiumTile(
-              title: "Shapes",
-              color: Colors.purple,
-              imagePath: "assets/images/shapes_icon.png",
-              isCompleted: _shapesCompleted,
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ShapesListScreen(),
+                  child: const Text(
+                    "Back to Classes",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                );
-                _loadProgress();
-              },
+                ),
+              ),
             ),
-
-            // ✅ COLOURS — NOW LIVE
-            _PremiumTile(
-              title: "Colours",
-              color: Colors.teal,
-              imagePath: "assets/images/colours_icon.png",
-              isCompleted: _coloursCompleted,
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ColoursListScreen(),
-                  ),
-                );
-                _loadProgress();
-              },
-            ),
-
-            // 🔒 FUTURE MODULES
-            _lockedTile("Animals", Colors.green),
-            _lockedTile("Fruits", Colors.redAccent),
           ],
         ),
       ),
@@ -147,7 +187,7 @@ class _NurseryModulesScreenState extends State<NurseryModulesScreen> {
   Widget _lockedTile(String title, Color color) {
     return Container(
       decoration: BoxDecoration(
-        color: color.withOpacity(0.8),
+        color: color.withOpacity(0.85),
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
@@ -303,7 +343,6 @@ class _PremiumTileState extends State<_PremiumTile>
                   ),
                 ),
 
-                // ✅ COMPLETION BADGE
                 if (widget.isCompleted)
                   Positioned(
                     top: 10,

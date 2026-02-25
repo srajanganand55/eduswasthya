@@ -13,9 +13,9 @@ class AlphabetListScreen extends StatefulWidget {
 
 class _AlphabetListScreenState extends State<AlphabetListScreen>
     with RouteAware {
-
   List<int> completedLetters = [];
   int nextLetterIndex = 0;
+  bool showContinue = false;
 
   @override
   void initState() {
@@ -35,7 +35,7 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
     super.dispose();
   }
 
-  /// ⭐ THIS runs when coming back from Lesson screen
+  /// ⭐ refresh when returning from lesson
   @override
   void didPopNext() {
     loadProgress();
@@ -44,6 +44,15 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
   Future<void> loadProgress() async {
     completedLetters = await ProgressService.getCompletedLetters();
 
+    final lastIndex =
+        await ProgressService.getAlphabetLastIndex();
+
+    final hasPartial =
+        await ProgressService.hasStartedAlphabetButNotFinished();
+
+    showContinue = hasPartial;
+
+    // ✅ compute next index safely
     nextLetterIndex = 0;
     for (int i = 0; i < 26; i++) {
       if (!completedLetters.contains(i)) {
@@ -53,10 +62,11 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
       if (i == 25) nextLetterIndex = 25;
     }
 
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   bool isLetterCompleted(int i) => completedLetters.contains(i);
+
   bool isLetterUnlocked(int i) =>
       i == 0 || completedLetters.contains(i - 1);
 
@@ -72,28 +82,42 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
       ),
       body: Column(
         children: [
-
-          if (completedLetters.isNotEmpty &&
-              completedLetters.length < 26)
+          /// ===== CONTINUE BANNER =====
+          if (showContinue)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 18),
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade100,
-                  borderRadius: BorderRadius.circular(18),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.orange.shade300,
+                      Colors.orange.shade200,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
                 child: Row(
                   children: [
                     const Icon(Icons.school,
-                        size: 40, color: Colors.orange),
+                        size: 40, color: Colors.white),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         "Continue learning from Letter ${letters[nextLetterIndex]}",
                         style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     ElevatedButton(
@@ -102,17 +126,23 @@ class _AlphabetListScreenState extends State<AlphabetListScreen>
                           context,
                           MaterialPageRoute(
                             builder: (_) =>
-                                AlphabetLessonScreen(index: nextLetterIndex),
+                                AlphabetLessonScreen(
+                                    index: nextLetterIndex),
                           ),
                         );
                       },
-                      child: const Text("Start"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.orange,
+                      ),
+                      child: const Text("Continue"),
                     )
                   ],
                 ),
               ),
             ),
 
+          /// ===== GRID =====
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(16),

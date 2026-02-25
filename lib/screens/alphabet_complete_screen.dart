@@ -3,8 +3,8 @@ import 'package:confetti/confetti.dart';
 import '../theme/app_theme.dart';
 import '../services/progress_service.dart';
 import '../services/tts_service.dart';
-import 'alphabet_lesson_screen.dart';
 import 'nursery_modules_screen.dart';
+import 'alphabet_list_screen.dart';
 
 class AlphabetCompleteScreen extends StatefulWidget {
   const AlphabetCompleteScreen({super.key});
@@ -17,7 +17,6 @@ class AlphabetCompleteScreen extends StatefulWidget {
 class _AlphabetCompleteScreenState
     extends State<AlphabetCompleteScreen>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _trophyController;
   late Animation<double> _scaleAnim;
   late ConfettiController _confettiController;
@@ -56,6 +55,32 @@ class _AlphabetCompleteScreenState
     super.dispose();
   }
 
+  // ✅ BACK TO SUBJECTS (STANDARDIZED)
+  void _backToSubjects() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const NurseryModulesScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
+  // ✅ RESTART (FIXED — no stack corruption)
+  Future<void> _restartAlphabets() async {
+  await ProgressService.resetAlphabetProgress();
+
+  if (!mounted) return;
+
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const AlphabetListScreen(),
+    ),
+    (route) => false,
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,7 +92,6 @@ class _AlphabetCompleteScreenState
       ),
       body: Stack(
         children: [
-
           /// ⭐ Background
           Container(
             decoration: const BoxDecoration(
@@ -82,7 +106,7 @@ class _AlphabetCompleteScreenState
             ),
           ),
 
-          /// 🎉 Confetti burst from top
+          /// 🎉 Confetti
           Align(
             alignment: Alignment.topCenter,
             child: ConfettiWidget(
@@ -100,7 +124,6 @@ class _AlphabetCompleteScreenState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 ScaleTransition(
                   scale: _scaleAnim,
                   child: const Icon(
@@ -135,24 +158,15 @@ class _AlphabetCompleteScreenState
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Column(
                     children: [
-
-                      /// Back
+                      /// Back to Subjects
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const NurseryModulesScreen(),
-                              ),
-                              (route) => route.isFirst,
-                            );
-                          },
+                          onPressed: _backToSubjects,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.primaryColor,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 18),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
                             ),
@@ -169,25 +183,15 @@ class _AlphabetCompleteScreenState
 
                       const SizedBox(height: 16),
 
-                      /// Restart
+                      /// Restart Alphabets
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () async {
-                            await ProgressService.resetAlphabetProgress();
-
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const AlphabetLessonScreen(index: 0),
-                              ),
-                              (route) => route.isFirst,
-                            );
-                          },
+                          onPressed: _restartAlphabets,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 18),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
                             ),
