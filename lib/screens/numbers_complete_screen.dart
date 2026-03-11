@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
+import '../features/nursery/shared/nursery_module_theme.dart';
 import '../theme/app_theme.dart';
 import '../services/progress_service.dart';
 import '../services/tts_service.dart';
@@ -55,7 +56,7 @@ class _NumbersCompleteScreenState extends State<NumbersCompleteScreen>
   }
 
   // ✅ Back to Subjects
-  void _backToSubjects() {
+  void _backToNurseryModules() {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
@@ -125,19 +126,19 @@ class _NumbersCompleteScreenState extends State<NumbersCompleteScreen>
               children: [
                 ScaleTransition(
                   scale: _scaleAnim,
-                  child: const Icon(
+                  child: Icon(
                     Icons.emoji_events,
                     size: 130,
-                    color: Colors.orange,
+                    color: nurseryModuleColor('numbers'),
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   "Fantastic!",
                   style: TextStyle(
                     fontSize: 38,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
+                    color: nurseryModuleColor('numbers'),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -155,16 +156,16 @@ class _NumbersCompleteScreenState extends State<NumbersCompleteScreen>
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _backToSubjects,
+                          onPressed: _restartNumbers,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryColor,
+                            backgroundColor: Colors.orange,
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
                             ),
                           ),
                           child: const Text(
-                            "Back to Subjects",
+                            "Restart Numbers",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -176,16 +177,16 @@ class _NumbersCompleteScreenState extends State<NumbersCompleteScreen>
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _restartNumbers,
+                          onPressed: _backToNurseryModules,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: AppTheme.primaryColor,
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
                             ),
                           ),
                           child: const Text(
-                            "Restart Numbers",
+                            "Back to Nursery Modules",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,

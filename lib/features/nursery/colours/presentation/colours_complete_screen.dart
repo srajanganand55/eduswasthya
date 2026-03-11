@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
 import '../../../../../screens/nursery_modules_screen.dart';
-import '../services/colours_progress_service.dart';
 import '../../../../../services/tts_service.dart';
-import 'colours_list_screen.dart';
+import '../colours_module_config.dart';
+import '../../engine/nursery_lesson_engine.dart';
+import '../../engine/nursery_module_entry_screen.dart';
+import '../../shared/nursery_module_theme.dart';
+import '../data/colour_item.dart';
 
 class ColoursCompleteScreen extends StatefulWidget {
   const ColoursCompleteScreen({super.key});
@@ -15,6 +18,8 @@ class ColoursCompleteScreen extends StatefulWidget {
 
 class _ColoursCompleteScreenState
     extends State<ColoursCompleteScreen> {
+  final NurseryLessonEngine<ColourItem> _engine =
+      NurseryLessonEngine<ColourItem>(config: coloursModuleConfig);
   late ConfettiController _confetti;
 
   @override
@@ -45,7 +50,7 @@ Future<void> _speakCongrats() async {
   }
 
   // ✅ BACK TO SUBJECTS (FIXED — no longer goes to Home)
-  void _backToSubjects() {
+  void _backToNurseryModules() {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
@@ -56,19 +61,21 @@ Future<void> _speakCongrats() async {
   }
 
   // ✅ RESTART COLOURS
-Future<void> _restartColours() async {
-  await ColoursProgressService.resetColoursProgress();
+  Future<void> _restartColours() async {
+    await _engine.resetModuleProgress();
 
-  if (!mounted) return;
+    if (!mounted) return;
 
-  Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(
-      builder: (_) => ColoursListScreen(),
-    ),
-    (route) => route.isFirst,
-  );
-}
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => NurseryModuleEntryScreen(
+          config: coloursModuleConfig,
+        ),
+      ),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,61 +107,31 @@ Future<void> _restartColours() async {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // ⭐ TITLE
-                  const Text(
+                  Text(
                     "Excellent!",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF1F8A9E),
+                      color: nurseryModuleColor('colours'),
                     ),
                   ),
 
                   const SizedBox(height: 12),
 
-                  const Text(
+                  Text(
                     "You finished Colours",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+                      color: nurseryModuleColor('colours'),
                     ),
                   ),
 
                   const SizedBox(height: 48),
 
                   // ===== BACK TO SUBJECTS =====
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _backToSubjects,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color(0xFF1F8A9E),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(32),
-                        ),
-                        elevation: 6,
-                      ),
-                      child: const Text(
-                        "Back to Subjects",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // ===== RESTART =====
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -173,6 +150,36 @@ Future<void> _restartColours() async {
                       ),
                       child: const Text(
                         "Restart Colours",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ===== RESTART =====
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _backToNurseryModules,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            const Color(0xFF1F8A9E),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 18,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(32),
+                        ),
+                        elevation: 6,
+                      ),
+                      child: const Text(
+                        "Back to Nursery Modules",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,

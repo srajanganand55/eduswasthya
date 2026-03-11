@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../features/nursery/shared/nursery_module_theme.dart';
 import '../services/tts_service.dart';
 import '../services/shapes_progress_service.dart';
 import '../theme/app_theme.dart';
@@ -90,6 +91,7 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
     final shape = shapes[currentIndex];
 
     return Scaffold(
+      backgroundColor: nurseryModuleSurface('shapes'),
       appBar: AppBar(
         title: const Text("Shapes Lesson"),
         backgroundColor: AppTheme.primaryColor,
@@ -119,8 +121,14 @@ class _ShapesLessonScreenState extends State<ShapesLessonScreen> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    SizedBox(
-                      height: 220,
+                    Container(
+                      width: 280,
+                      height: 280,
+                      padding: const EdgeInsets.all(34),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: nurseryModuleStage('shapes'),
+                      ),
                       child: FittedBox(
                         fit: BoxFit.contain,
                         child: Image.asset(shape["image"]!),

@@ -1,4 +1,5 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../shared/nursery_lesson_coordinator.dart';
+import '../../shared/nursery_progress_base.dart';
 
 class ColoursProgressService {
   static const String _prefix = 'nursery_colour_';
@@ -15,14 +16,21 @@ class ColoursProgressService {
     'pink',
     'brown',
   ];
+  static final NurseryLessonCoordinator _coordinator =
+      NurseryLessonCoordinator(
+        progressKey: _prefix,
+        totalLessons: _allIds.length,
+        lessonKeys: _allIds.map((id) => '$_prefix$id').toList(),
+        completedKey: _completedKey,
+        lastIndexKey: _lastIndexKey,
+      );
 
   // ============================================================
   // ✅ MARK SINGLE COLOUR COMPLETE
   // ============================================================
 
   static Future<void> markColourCompleted(String id) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('$_prefix$id', true);
+    await NurseryProgressBase.saveProgress('$_prefix$id', true);
   }
 
   // ============================================================
@@ -30,8 +38,7 @@ class ColoursProgressService {
   // ============================================================
 
   static Future<bool> isColourCompleted(String id) async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('$_prefix$id') ?? false;
+    return await NurseryProgressBase.isCompleted('$_prefix$id');
   }
 
   // ============================================================
@@ -39,8 +46,7 @@ class ColoursProgressService {
   // ============================================================
 
   static Future<void> setLastIndex(int index) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_lastIndexKey, index);
+    await NurseryProgressBase.saveProgress(_lastIndexKey, index);
   }
 
   // ============================================================
@@ -48,8 +54,7 @@ class ColoursProgressService {
   // ============================================================
 
   static Future<int?> getLastIndex() async {
-    final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getInt(_lastIndexKey);
+    final value = await NurseryProgressBase.loadProgress(_lastIndexKey) as int?;
 
     if (value == null) return null;
     if (value < 0 || value >= _allIds.length) return null;
@@ -62,18 +67,7 @@ class ColoursProgressService {
   // ============================================================
 
   static Future<bool> hasStartedButNotFinished() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    bool anyCompleted = false;
-    bool allCompleted = true;
-
-    for (final id in _allIds) {
-      final done = prefs.getBool('$_prefix$id') ?? false;
-      if (done) anyCompleted = true;
-      if (!done) allCompleted = false;
-    }
-
-    return anyCompleted && !allCompleted;
+    return _coordinator.hasStartedButNotFinished();
   }
 
   // ============================================================
@@ -81,16 +75,7 @@ class ColoursProgressService {
   // ============================================================
 
   static Future<bool> isColoursFullyCompleted() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    for (final id in _allIds) {
-      if (!(prefs.getBool('$_prefix$id') ?? false)) {
-        return false;
-      }
-    }
-
-    await prefs.setBool(_completedKey, true);
-    return true;
+    return _coordinator.isModuleCompleted();
   }
 
   // ============================================================
@@ -98,15 +83,6 @@ class ColoursProgressService {
   // ============================================================
 
   static Future<void> resetColoursProgress() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    // remove individual colour flags
-    for (final id in _allIds) {
-      await prefs.remove('$_prefix$id');
-    }
-
-    // remove module flags
-    await prefs.remove(_completedKey);
-    await prefs.remove(_lastIndexKey);
+    await _coordinator.resetModuleProgress();
   }
 }

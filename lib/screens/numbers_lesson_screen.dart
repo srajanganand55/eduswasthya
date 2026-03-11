@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../features/nursery/shared/nursery_module_theme.dart';
 import '../theme/app_theme.dart';
 import '../services/tts_service.dart';
 import '../services/progress_service.dart';
@@ -129,7 +130,7 @@ class _NumbersLessonScreenState extends State<NumbersLessonScreen>
     final data = numbersData[widget.index];
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: nurseryModuleSurface('numbers'),
       appBar: AppBar(
         title: const Text("Numbers Lesson"),
         backgroundColor: AppTheme.primaryColor,
@@ -138,18 +139,7 @@ class _NumbersLessonScreenState extends State<NumbersLessonScreen>
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFF5F7FA),
-              Color(0xFFE9EEF3)
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
+      body: SafeArea(
           child: Column(
             children: [
               Expanded(
@@ -182,9 +172,19 @@ class _NumbersLessonScreenState extends State<NumbersLessonScreen>
                                     FontWeight.bold),
                           ),
                           const SizedBox(height: 25),
-                          Image.asset(
+                          Container(
+                            width: 280,
+                            height: 280,
+                            padding: const EdgeInsets.all(34),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: nurseryModuleStage('numbers'),
+                            ),
+                            child: Image.asset(
                               data["image"]!,
-                              height: 200),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                           const SizedBox(height: 35),
                           ElevatedButton.icon(
                             onPressed: () async =>
@@ -306,7 +306,6 @@ class _NumbersLessonScreenState extends State<NumbersLessonScreen>
               ),
             ],
           ),
-        ),
       ),
     );
   }

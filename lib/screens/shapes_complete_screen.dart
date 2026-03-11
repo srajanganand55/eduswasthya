@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
+import '../features/nursery/shared/nursery_module_theme.dart';
 import '../theme/app_theme.dart';
 import '../services/shapes_progress_service.dart';
 import '../services/tts_service.dart';
@@ -56,7 +57,7 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
 
   // ================= BACK TO SUBJECTS =================
 
-  void _backToSubjects() {
+  void _backToNurseryModules() {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
@@ -129,21 +130,21 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
               children: [
                 ScaleTransition(
                   scale: _scaleAnim,
-                  child: const Icon(
+                  child: Icon(
                     Icons.emoji_events,
                     size: 130,
-                    color: Colors.orange,
+                    color: nurseryModuleColor('shapes'),
                   ),
                 ),
 
                 const SizedBox(height: 24),
 
-                const Text(
+                Text(
                   "Fantastic!",
                   style: TextStyle(
                     fontSize: 38,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
+                    color: nurseryModuleColor('shapes'),
                   ),
                 ),
 
@@ -165,9 +166,9 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _backToSubjects,
+                          onPressed: _restartShapes,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryColor,
+                            backgroundColor: Colors.orange,
                             padding:
                                 const EdgeInsets.symmetric(vertical: 18),
                             shape: RoundedRectangleBorder(
@@ -175,7 +176,7 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
                             ),
                           ),
                           child: const Text(
-                            "Back to Subjects",
+                            "Restart Shapes",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -190,9 +191,9 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _restartShapes,
+                          onPressed: _backToNurseryModules,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: AppTheme.primaryColor,
                             padding:
                                 const EdgeInsets.symmetric(vertical: 18),
                             shape: RoundedRectangleBorder(
@@ -200,7 +201,7 @@ class _ShapesCompleteScreenState extends State<ShapesCompleteScreen>
                             ),
                           ),
                           child: const Text(
-                            "Restart Shapes",
+                            "Back to Nursery Modules",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
